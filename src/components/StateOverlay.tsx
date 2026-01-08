@@ -8,16 +8,15 @@ interface StateOverlayProps {
   onStateClick: (stateName: string, books: BannedBook[]) => void
 }
 
-// Helper function to normalize state names for matching
+// normalize state names for matching
 function normalizeStateName(name: string): string {
   return name.trim()
 }
 
-// Helper function to get heatmap color based on book count
+// get heatmap color based on book count
 function getHeatmapColor(count: number, maxCount: number): string {
   if (count === 0) return '#e0e0e0' // Gray for no books
   
-  // Normalize count to 0-1 range
   const intensity = Math.min(count / Math.max(maxCount, 1), 1)
   
   // Color gradient: light red -> medium red -> dark red
@@ -26,21 +25,18 @@ function getHeatmapColor(count: number, maxCount: number): string {
   // Dark red: rgb(180, 0, 0)
   
   if (intensity < 0.33) {
-    // Light red to medium-light red
     const t = intensity / 0.33
     const r = Math.floor(255)
     const g = Math.floor(200 - 50 * t)
     const b = Math.floor(200 - 50 * t)
     return `rgb(${r}, ${g}, ${b})`
   } else if (intensity < 0.66) {
-    // Medium-light red to medium red
     const t = (intensity - 0.33) / 0.33
     const r = Math.floor(255)
     const g = Math.floor(150 - 50 * t)
     const b = Math.floor(150 - 50 * t)
     return `rgb(${r}, ${g}, ${b})`
   } else {
-    // Medium red to dark red
     const t = (intensity - 0.66) / 0.34
     const r = Math.floor(255 - 75 * t)
     const g = Math.floor(100 - 100 * t)
@@ -60,13 +56,11 @@ function StateOverlay({ booksByState, onStateClick }: StateOverlayProps) {
       .catch((error) => console.error('Error loading GeoJSON:', error))
   }, [])
 
-  // Calculate max book count for heatmap scaling
   const maxBookCount = useMemo(() => {
     const counts = Object.values(booksByState).map(books => books.length)
     return Math.max(...counts, 1)
   }, [booksByState])
 
-  // Create a key based on the booksByState to force re-render when it changes
   const overlayKey = useMemo(() => {
     return JSON.stringify(Object.keys(booksByState).sort()) + '_' + 
            Object.values(booksByState).reduce((sum, books) => sum + books.length, 0)
@@ -76,10 +70,8 @@ function StateOverlay({ booksByState, onStateClick }: StateOverlayProps) {
 
   const onEachFeature = (feature: any, layer: L.Layer) => {
     const stateName = normalizeStateName(feature.properties.name)
-    // Read from current booksByState prop, not from closure
     const getStateBooks = () => booksByState[stateName] || []
     
-    // Create style function that reads current booksByState
     const getStyle = () => {
       const stateBooks = getStateBooks()
       const bookCount = stateBooks.length
@@ -116,7 +108,6 @@ function StateOverlay({ booksByState, onStateClick }: StateOverlayProps) {
       },
       mouseout: (e) => {
         const layer = e.target
-        // Reset to current style
         layer.setStyle(getStyle())
         layer.closePopup()
       },

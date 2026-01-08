@@ -15,11 +15,3 @@ export interface BooksByState {
   [state: string]: BannedBook[]
 }
 
-export interface BooksByCounty {
-  [county: string]: BannedBook[]
-}
-
-export interface BooksByStateAndCounty {
-  [state: string]: BooksByCounty
-}
-

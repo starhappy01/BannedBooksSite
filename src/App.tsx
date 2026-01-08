@@ -60,13 +60,11 @@ function App() {
 
   const handleStateClick = (stateName: string, books: BannedBook[]) => {
     setSelectedState(stateName)
-    // books passed here are already filtered, but useEffect will ensure consistency
     setSelectedBooks(books)
   }
 
   const handleYearChange = (year: number | null) => {
     setSelectedYear(year)
-    // useEffect will handle updating selectedBooks if a state is selected
   }
 
   return (

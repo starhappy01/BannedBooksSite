@@ -118,7 +118,6 @@ const sliderStyle: React.CSSProperties = {
   cursor: 'pointer'
 }
 
-// Add custom slider thumb styling via CSS
 const sliderThumbStyle = `
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;

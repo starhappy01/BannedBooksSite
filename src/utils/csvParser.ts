@@ -1,7 +1,6 @@
 import Papa from 'papaparse'
-import { BannedBook, BooksByState, BooksByStateAndCounty } from '../types'
+import { BannedBook, BooksByState } from '../types'
 
-// Extract year from Challenge/Removal date string
 // Handles formats like: "August 2023", "Fall 2023", "Oct-22", "Feb-23", "AY 2022-2023"
 export function extractYear(dateString: string): number | null {
   if (!dateString) return null
@@ -24,27 +23,6 @@ export function extractYear(dateString: string): number | null {
   }
 
   return null
-}
-
-// Extract county name from district string (e.g., "Escambia County Public Schools" -> "Escambia County")
-export function extractCountyName(district: string): string {
-  if (!district) return ''
-
-  // Remove common suffixes like "Public Schools", "School District", etc.
-  const cleaned = district
-    .replace(/\s*(Public Schools|School District|Community Schools|Independent School District|Area School District|County School District|County Schools|Schools).*$/i, '')
-    .trim()
-
-  // If it still doesn't have "County", try to extract it
-  if (cleaned && !cleaned.includes('County')) {
-    // Try to match patterns like "Escambia County" or "Orange County"
-    const match = district.match(/([\w\s]+?)\s*County/i)
-    if (match) {
-      return match[1].trim() + ' County'
-    }
-  }
-
-  return cleaned || district.trim()
 }
 
 // Helper function to parse a single CSV file
@@ -71,16 +49,18 @@ function parseCSVFile(text: string): Promise<BannedBook[]> {
 
 export async function parseBannedBooksCSV(): Promise<{
   booksByState: BooksByState
-  booksByStateAndCounty: BooksByStateAndCounty
   allBooks: BannedBook[]
   availableYears: number[]
 }> {
   try {
+    // Get base URL from Vite (handles GitHub Pages subdirectory)
+    const baseUrl = import.meta.env.BASE_URL || '/'
+    
     // List of CSV files to load
     const csvFiles = [
-      '/BannedBookList.csv',
-      '/Grid view (1).csv',
-      '/Grid view (2).csv'
+      `${baseUrl}BannedBookList.csv`,
+      `${baseUrl}Grid view (1).csv`,
+      `${baseUrl}Grid view (2).csv`
     ]
 
     // Load all CSV files in parallel
@@ -103,8 +83,6 @@ export async function parseBannedBooksCSV(): Promise<{
 
     // Group books by state
     const booksByState: BooksByState = {}
-    // Group books by state and county
-    const booksByStateAndCounty: BooksByStateAndCounty = {}
     // Track unique years
     const yearSet = new Set<number>()
 
@@ -123,27 +101,12 @@ export async function parseBannedBooksCSV(): Promise<{
         booksByState[state] = []
       }
       booksByState[state].push(book)
-
-      // Group by state and county
-      if (!booksByStateAndCounty[state]) {
-        booksByStateAndCounty[state] = {}
-      }
-
-      if (book.District) {
-        const countyName = extractCountyName(book.District)
-        if (countyName) {
-          if (!booksByStateAndCounty[state][countyName]) {
-            booksByStateAndCounty[state][countyName] = []
-          }
-          booksByStateAndCounty[state][countyName].push(book)
-        }
-      }
     })
 
     // Convert year set to sorted array
     const availableYears = Array.from(yearSet).sort((a, b) => a - b)
 
-    return { booksByState, booksByStateAndCounty, allBooks, availableYears }
+    return { booksByState, allBooks, availableYears }
   } catch (error) {
     console.error('Error parsing CSV:', error)
     throw error
